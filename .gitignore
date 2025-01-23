@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+
+# Environment files
+.env
+
+# Database files
+*.sqlite3
+test.db
+
+# Docker files
+.docker/
+docker-compose.yml
+
+# Virtual environment
+venv/
+env/
+
+# Log files
+*.log
+
+# Bytecode files
+*.pyc
+
+# Pytest cache
+.cache/
+
+# IDE configuration files
+.idea/
+.vscode/
+
+# MacOS-specific files
+.DS_Store
