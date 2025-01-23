@@ -2,6 +2,17 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import engine, Base, get_db
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI()
 
 # Initialize FastAPI
 app = FastAPI()
@@ -11,16 +22,24 @@ Base.metadata.create_all(bind=engine)
 
 # Routes for Love Analysis
 @app.post("/love_analysis/", response_model=schemas.LoveAnalysis)
-def create_love_analysis(love_analysis: schemas.LoveAnalysisCreate, db: Session = Depends(get_db)):
+def create_love_analysis(love_analysis: schemas.LoveAnalysisBase, db: Session = Depends(get_db)):
     new_love_analysis = models.LoveAnalysis(
         previous_love_analysis=love_analysis.previous_love_analysis,
         current_convo=love_analysis.current_convo,
         new_love_analysis=love_analysis.new_love_analysis
     )
-    db.add(new_love_analysis)
-    db.commit()
-    db.refresh(new_love_analysis)
-    return new_love_analysis
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            store=True,
+            messages=[
+                {"role": "user", "content": "write a haiku about ai"}
+            ]
+        )
+        return completion.choices[0].message.content
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Azure OpenAI error: {str(e)}")
+
 
 @app.get("/love_analysis/{love_analysis_id}", response_model=schemas.LoveAnalysis)
 def get_love_analysis(love_analysis_id: int, db: Session = Depends(get_db)):

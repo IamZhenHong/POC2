@@ -5,9 +5,6 @@ class LoveAnalysisBase(BaseModel):
     previous_love_analysis: str
     current_convo: str
 
-class LoveAnalysisCreate(LoveAnalysisBase):
-    new_love_analysis: str  # Add this field to match the input data
-
 class LoveAnalysis(LoveAnalysisBase):
     id: int
 
