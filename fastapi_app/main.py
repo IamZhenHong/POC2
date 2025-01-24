@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import desc
 import json
+from typing import List
 # Load environment variables
 load_dotenv()
 
@@ -28,6 +29,29 @@ def create_target(target: schemas.TargetCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_target)
     return db_target
+
+@app.get("/targets/", response_model=List[schemas.TargetOut])
+def get_all_targets(db: Session = Depends(get_db)):
+    """
+    Fetch all targets from the database.
+    """
+    return db.query(models.Target).all()
+
+@app.put("/targets/{target_id}", response_model=schemas.TargetOut)
+def update_target(target_id: int, updated_target: schemas.TargetCreate, db: Session = Depends(get_db)):
+    """
+    Update an existing target's details.
+    """
+    target = db.query(models.Target).filter(models.Target.id == target_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Target not found")
+    
+    for key, value in updated_target.dict().items():
+        setattr(target, key, value)
+    
+    db.commit()
+    db.refresh(target)
+    return target
 
 
 # Routes for Love Analysis
@@ -55,7 +79,7 @@ def create_love_analysis(love_analysis: schemas.LoveAnalysisCreate, db: Session 
         prompt = f"""
         You are a love coach who is very good at analysing the relationship dynamics, personalities, latent feeling and of both parties.  I'm your client seeking your advice. 
         ###
-        Analyse chat history example and relationship info provided and output the following analysis
+        Analyse previous love_analysis_content and chat history example provided and output the following analysis
         1. general relationship dynamic
         2. how I present myself in front of the other party
         3. how the other party most likely see me and feel about me; 
@@ -64,6 +88,7 @@ def create_love_analysis(love_analysis: schemas.LoveAnalysisCreate, db: Session 
         6.  the other party's personality shown in the conversation
         7.  what the other party are likely to do next in our interactions
         8. overall advice if I want to achieve my relationship goals
+        9. How have the relationship dynamics changed since the last conversation
         ###
         Previous Love Analysis:
         {previous_love_analysis_content}
@@ -101,46 +126,6 @@ def create_love_analysis(love_analysis: schemas.LoveAnalysisCreate, db: Session 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Azure OpenAI error: {str(e)}")
 
-
-# # Not solved yet
-# @app.get("/love_analysis/{love_analysis_id}", response_model=schemas.LoveAnalysis)
-# def get_love_analysis(love_analysis_id: int, db: Session = Depends(get_db)):
-#     love_analysis = db.query(models.LoveAnalysis).filter(models.LoveAnalysis.id == love_analysis_id).first()
-#     print(f"Queried Love Analysis: {love_analysis}")
-#     if not love_analysis:
-#         raise HTTPException(status_code=404, detail="Love Analysis not found")
-#     return love_analysis
-
-
-# # Routes for Style
-# @app.post("/styles/", response_model=schemas.Style)
-# def create_style(style: schemas.StyleCreate, db: Session = Depends(get_db)):
-#     previous_style = (
-#         db.query(models.Style)
-#         .order_by(desc(models.Style.created_at))
-#         .first()
-#     )
-#     previous_style_content = previous_style.content if previous_style else "None"
-#     prompt = ""
-#     completion = client.chat.completions.create(
-#             model="gpt-4o",
-#             store=True,
-#             messages=[
-#                 {"role": "system", "content": "Y"},
-#                 {"role": "user", "content": prompt}
-#             ]
-#         )
-#     db.add(new_style)
-#     db.commit()
-#     db.refresh(new_style)
-#     return new_style
-
-# @app.get("/styles/{style_id}", response_model=schemas.Style)
-# def get_style(style_id: int, db: Session = Depends(get_db)):
-#     style = db.query(models.Style).filter(models.Style.id == style_id).first()
-#     if not style:
-#         raise HTTPException(status_code=404, detail="Style not found")
-#     return style
 
 # Routes for Chat Strategy
 @app.post("/chat_strategies/", response_model=schemas.ChatStrategyOut)
