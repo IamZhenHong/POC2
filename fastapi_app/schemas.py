@@ -1,54 +1,53 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class LoveAnalysisBase(BaseModel):
-    previous_love_analysis: str
-    current_convo: str
+class LoveAnalysisCreate(BaseModel):
+    convo: str
+    target_id: int
 
-class LoveAnalysis(LoveAnalysisBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-class StyleBase(BaseModel):
-    previous_style: str
-    current_convo: str
-
-class StyleCreate(StyleBase):
-    pass
-
-class Style(StyleBase):
-    id: int
-    new_style: str
+class LoveAnalysisOut(BaseModel):
+    content: str
 
     class Config:
         from_attributes = True
 
-class ChatStrategyBase(BaseModel):
-    new_love_analysis: str
+class StyleCreate(BaseModel):
+    convo: str
+    target_id: int
 
-class ChatStrategyCreate(ChatStrategyBase):
+class Style(StyleCreate):
+    content: str
+
+class ChatStrategyCreate(BaseModel):
+    target_id: int
+
+class ChatStrategyOut(BaseModel):
+    content: str
+
+class ReplyOptionsCreate(BaseModel):
+    target_id: int
+
+class ReplyOptionsOut(BaseModel):
+    option1: str
+    option2: str
+    option3: str
+    option4: str
+
+class TargetBase(BaseModel):
+    name: str
+    gender: Optional[str] = None
+    relationship_context: Optional[str] = None
+    relationship_perception: Optional[str] = None
+    relationship_goals: Optional[str] = None
+    relationship_goals_long: Optional[str] = None
+    personality: Optional[str] = None
+    language: Optional[str] = None
+
+class TargetCreate(TargetBase):
     pass
 
-class ChatStrategy(ChatStrategyBase):
+class TargetOut(TargetBase):
     id: int
-    chat_strategy: str
-
-    class Config:
-        from_attributes = True
-
-class ReplyOptionsFlowBase(BaseModel):
-    new_chat_strategy: str
-    new_love_analysis: str
-    current_convo: str
-
-class ReplyOptionsFlowCreate(ReplyOptionsFlowBase):
-    pass
-
-class ReplyOptionsFlow(ReplyOptionsFlowBase):
-    id: int
-    reply_options_flow: str
 
     class Config:
         from_attributes = True
